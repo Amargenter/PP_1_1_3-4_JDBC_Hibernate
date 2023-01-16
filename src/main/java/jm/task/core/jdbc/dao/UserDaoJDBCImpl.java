@@ -3,9 +3,7 @@ package jm.task.core.jdbc.dao;
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,23 +17,53 @@ public class UserDaoJDBCImpl implements UserDao {
                 "(id INT not NULL AUTO_INCREMENT, name VARCHAR(45), " +
                 " lastName VARCHAR(45), age TINYINT(3), " +
                 " PRIMARY KEY (id))";
-        statementCalling(sql);
+        try (Connection connection = Util.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.executeUpdate(sql);
+        } catch (SQLException e) {
+            System.out.println("Ошибка при создании таблицы users.");
+            e.printStackTrace();
+        }
     }
 
     public void dropUsersTable() {
         String sql = "DROP TABLE IF EXISTS `users`";
-        statementCalling(sql);
+        try (Connection connection = Util.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.executeUpdate(sql);
+        } catch (SQLException e) {
+            System.out.println("Ошибка при удалении таблицы users.");
+            e.printStackTrace();
+        }
     }
 
     public void saveUser(String name, String lastName, byte age) {
-        String sql = String.format("INSERT INTO users (name, lastName, age)" +
-                " VALUES ('%s', '%s', %d)", name, lastName, age);
-        statementCalling(sql);
+        String sql = "INSERT INTO users (name, lastName, age)" +
+                " VALUES (?, ?, ?)";
+        try (Connection connection = Util.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, name);
+            preparedStatement.setString(2, lastName);
+            preparedStatement.setByte(3, age);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Ошибка при сохранении нового пользователя.");
+            e.printStackTrace();
+        }
     }
 
     public void removeUserById(long id) {
-        String sql = String.format("DELETE FROM users WHERE id = %d", id);
-        statementCalling(sql);
+        String sql = "DELETE FROM users WHERE id = ?";
+        try (Connection connection = Util.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Ошибка при удалении пользователя по ID.");
+            e.printStackTrace();
+        }
     }
 
     public List<User> getAllUsers() {
@@ -43,8 +71,9 @@ public class UserDaoJDBCImpl implements UserDao {
         List<User> usersList = new ArrayList<>();
 
         String sql = "SELECT * FROM users";
-        try (Statement statement = Util.getConnection().createStatement()) {
-            ResultSet rs = statement.executeQuery(sql);
+        try (Connection connection = Util.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet rs = preparedStatement.executeQuery(sql);
             while (rs.next()) {
                 User user = new User();
                 user.setId(rs.getLong(1));
@@ -54,6 +83,7 @@ public class UserDaoJDBCImpl implements UserDao {
                 usersList.add(user);
             }
         } catch (SQLException e) {
+            System.out.println("Ошибка при выборке списка пользователей.");
             e.printStackTrace();
         }
         return usersList;
@@ -61,13 +91,11 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void cleanUsersTable() {
         String sql = "TRUNCATE users";
-        statementCalling(sql);
-    }
-
-    public void statementCalling(String sql) {
-        try (Statement statement = Util.getConnection().createStatement()) {
-            statement.execute(sql);
-        } catch (SQLException e) {
+        try (Connection connection = Util.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.executeUpdate();
+        } catch (SQLException e){
+            System.out.println("Ошибка при очистке таблицы.");
             e.printStackTrace();
         }
     }
