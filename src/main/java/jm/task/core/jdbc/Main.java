@@ -27,8 +27,8 @@ public class Main {
             System.out.printf("User с именем %s добавлен в базу данных.\n", name);
         }
 
-        // Получение всех User из базы и вывод в консоль
-        // (должен быть переопределен toString в классе User)
+//         Получение всех User из базы и вывод в консоль
+//         (должен быть переопределен toString в классе User)
         System.out.println();
         System.out.println("Текущие User в таблице: ");
         System.out.println(userService.getAllUsers().toString());
