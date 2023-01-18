@@ -33,10 +33,6 @@ public class Util {
         return connection;
     }
 
-    //SessionFactory factory = new Configuration().configure()
-            //.addAnnotatedClass(User.class).buildSessionFactory();
-    //Session session = factory.getCurrentSession();
-
     private static SessionFactory sessionFactory;
     public static SessionFactory getSessionFactory() {
         if (sessionFactory == null) {
